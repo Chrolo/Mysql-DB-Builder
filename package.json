@@ -1,0 +1,22 @@
+{
+  "name": "dbbuilder",
+  "version": "1.0.0",
+  "description": "A utility to create SQL tables from JSON definitions. Will additionally insert initialisation data if wanted.",
+  "main": "src/main.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "ajv": "^5.2.2",
+    "mysql": "^2.14.1",
+    "yargs": "^8.0.2"
+  },
+  "devDependencies": {
+    "mocha": "^3.5.0"
+  }
+}

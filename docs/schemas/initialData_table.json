@@ -1,0 +1,11 @@
+{
+    "id" :"Initial data",
+    "description": "A collection of row data to be loaded into the database on creation.",
+    "type": "array",
+    "items":{
+        "type": "object",
+        "properties": {
+            "<fieldName>": {"description":"a field => value pair"}
+        }
+    }
+}

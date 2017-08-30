@@ -1,0 +1,44 @@
+{
+    "type": "object",
+    "description": "A collection of properties used to define a `field` of an SQL table.",
+    "properties": {
+
+        "name": {
+            "type": "string",
+            "description": "the name of the field"
+        },
+
+        "type": {
+            "type": "string",
+            "description": "the MySQL type of the field."
+        },
+
+        "autoIncrement": {
+            "type": "boolean",
+            "description": "whether the field auto increments or not"
+        },
+
+        "notNull": {
+            "type": "boolean",
+            "description": "whether the field can be NULL or not"
+        },
+
+        "unique": {
+            "type": "boolean",
+            "description": "whether the all fields in column must be unique."
+        },
+
+        "foreignKey": {
+            "type": "object",
+            "description": "object describing any foreign key constraint",
+            "properties": {
+                "table": {"type": "string", "description": "the table where the foreign key resides."},
+                "column": {"type": "string", "description": "the column for the foreign key."}
+            }
+        }
+    },
+    "required":[
+        "name",
+        "type"
+    ]
+}

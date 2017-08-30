@@ -1,0 +1,5 @@
+# Node stuff
+node_modules/
+
+#Random Project files.
+tmp/
