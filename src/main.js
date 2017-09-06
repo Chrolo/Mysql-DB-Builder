@@ -7,58 +7,84 @@ const processTableDefinition = require('./processTableDefinition.js');
 const { tableCreator, addForiegnKeyConstraints } = require('./tableCreator.js');
 const { addDataFromFile } = require('./dataFiller.js');
 const tableValidator = require('./tableValidator.js');
+const getPasswordFromStdin = require('../src/passwordstdin.js');
 
-//Process the command line arugments:
+//GLOBAL DEFINITIONS
+let tableStatuses;  // a tracker for the statuses of the different tables during processing.
+let mysqlConnection;
 
-//get password via stdin:
-//TODO
 
-//Load config file
-const dbConfig = jsonFileLoader(argv.config);
-if (dbConfig === null) {
-    console.error('[MySQLBuilder] config file could not be loaded.');
-    exit(1);
-}
+//Processing begin:
+new Promise((resolve, reject)=>{
 
-//setup connection config
-const mysqlConnectionConfig = {
-    host: argv.db_host || 'localhost',
-    user: argv.db_user,
-    password: argv.db_pass,
-    database: argv.db_name || dbConfig.name
-};
-
-//verify it's all there:
-['database', 'user', 'host'].forEach((requiredField)=>{
-    if(!mysqlConnectionConfig[requiredField]){
-        console.error(`Startup did not get required connection field ${requiredField}.`);
-        process.exit(1);
+    //Load config file
+    const dbConfig = jsonFileLoader(argv.config);
+    if (dbConfig === null) {
+        console.error('[MySQLBuilder] config file could not be loaded.');
+        exit(1);
     }
-});
+    //TODO: verify that the database schema is valid
+
+    // get database password
+    let passwordPromise = null;
+    if(argv.db_pass === true){
+        //flag was set, but was not a string, so get password via stdin:
+        passwordPromise = getPasswordFromStdin().then((pass)=>{
+            console.log('main saw password of:', pass);
+            if(pass.length < 1){
+                return void 0;
+            }
+            return pass;
+        });
+    } else {
+        passwordPromise = Promise.resolve(argv.db_pass);
+    }
+
+    mysqlConfigPromise = passwordPromise.then((password)=>{
+        //setup connection config
+        const mysql = {
+            host: argv.db_host || 'localhost',
+            user: argv.db_user,
+            password: password,
+            database: argv.db_name || dbConfig.name
+        };
+
+        //verify it's all there:
+        ['database', 'user', 'host'].forEach((requiredField)=>{
+            if(!mysql[requiredField]){
+                console.error(`Startup did not get required connection field ${requiredField}.`);
+                process.exit(1);
+            }
+        });
+        return mysql;
+    });
+
+    resolve(Promise.all([
+        mysqlConfigPromise,
+        dbConfig
+    ]))
+
+})
+.then((config)=>{
+    //Connect to the database
+    const mysqlConfig = config[0];
+    const dbConfig = config[1];
 
 
-console.info(`Connecting to database: '${mysqlConnectionConfig.database}'  on '${mysqlConnectionConfig.host}' using user '${mysqlConnectionConfig.user}'`);
-var connection = mysql.createConnection(mysqlConnectionConfig);
+    console.info(`Connecting to database: '${mysqlConfig.database}'  on '${mysqlConfig.host}' using user '${mysqlConfig.user}'`);
+    mysqlConnection = mysql.createConnection(mysqlConfig);
 
-connection.connect();
-
-//Verify table configs fits schemas
-//TODO
-
-
-// a tracker for the statuses of the different tables during processing.
-let tableStatuses;
-
-new Promise( (resolve, reject) => {
-    //Check the connection
-    connection.query('SELECT 1 + 1 AS solution;', (error) => {
+    mysqlConnection.connect();
+    return new Promise( (resolve, reject) => {
+    mysqlConnection.query('SELECT 1 + 1 AS solution;', (error) => {
         if (error) {
             reject(error);
         } else {
-            resolve();
+            resolve(dbConfig);
         }
+        });
     });
-}).then(()=>{
+}).then((dbConfig)=>{
     //initialise tableStatuses:
     tableStatuses = dbConfig.tables.map((schema)=>{
         return {
@@ -74,7 +100,7 @@ new Promise( (resolve, reject) => {
 
     //Check status of each table against the schemas given.
     return Promise.all(tableStatuses.map((status, index)=>{
-        return tableValidator(connection, status.schema).then((results)=>{
+        return tableValidator(mysqlConnection, status.schema).then((results)=>{
             //adjust table statuses after results
             status.isCompliant = results.isCompliant;
             status.exists = results.exists;
@@ -94,7 +120,7 @@ new Promise( (resolve, reject) => {
             //If not compliant by this stage, it needs to be dropped
             console.info(`Dropping table '${tableStatus.name}' as it was non-compliant and could not be modifed into correct shape.`);
             return new Promise( (resolve,reject) => {
-                connection.query(`DROP TABLE ${tableStatus.name};`,(err)=>{
+                mysqlConnection.query(`DROP TABLE ${tableStatus.name};`,(err)=>{
                     if(err){
                         reject(err);
                     } else{
@@ -121,7 +147,7 @@ new Promise( (resolve, reject) => {
         if(tableStatus.exists) {
             return tableStatus;
         } else {
-            return tableCreator(connection, tableStatus.schema)
+            return tableCreator(mysqlConnection, tableStatus.schema)
                 .then((result)=>{
                     tableStatus.exists = result;
                     tableStatus.isCompliant = result;
@@ -133,7 +159,7 @@ new Promise( (resolve, reject) => {
 }).then((statuses)=>{
     //add constraints
     const promises = statuses.map((status)=>{
-        return addForiegnKeyConstraints(connection,status.schema).then((res)=>{
+        return addForiegnKeyConstraints(mysqlConnection,status.schema).then((res)=>{
             return status;
         });
     });
@@ -149,7 +175,7 @@ new Promise( (resolve, reject) => {
 
     if(argv.initial_data_file){
         console.info(`Adding data from file: ${argv.initial_data_file}`);
-        return addDataFromFile(connection, argv.initial_data_file).catch((err)=>{
+        return addDataFromFile(mysqlConnection, argv.initial_data_file).catch((err)=>{
             console.error(`There was a problem adding data from file '${argv.initial_data_file}' into database:\n`,err);
             return Promise.reject(err);
         });
@@ -158,12 +184,12 @@ new Promise( (resolve, reject) => {
     }
 }).then(()=>{
     //Clear connection
-    connection.end();
+    mysqlConnection.end();
 
     //Thank you, come again.
     console.log('Process complete. Thank you, come again.');
 }).catch((error)=>{
     console.log('[Error] An error occurred during processing: ',error);
 
-    connection.end();
+    mysqlConnection.end();
 });
