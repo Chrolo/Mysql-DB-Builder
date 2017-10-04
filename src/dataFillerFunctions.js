@@ -1,8 +1,8 @@
+const ajv = require('ajv');
 function verifyImportData(data, config){
     //TODO: implement
     console.error('[DataFiller::verifyImportData] Function not implemented');
 }
-
 
 /**
 This function creates a batch of prepared strings and the data for them.
@@ -10,12 +10,12 @@ This function creates a batch of prepared strings and the data for them.
 */
 function createBatchedValues(rows, fields){
 
-    let values = [];
-    let stringSections = [];
-    const stringSection = '('+fields.map(()=>'?').join() + ')';
+    const values = [];
+    const stringSections = [];
+    const stringSection = `(${fields.map(() => '?').join()})`;
 
-    rows.forEach((row)=>{
-        fields.forEach(field =>{
+    rows.forEach((row) => {
+        fields.forEach(field => {
             values.push(row[field]);
         });
         stringSections.push(stringSection);
@@ -24,19 +24,19 @@ function createBatchedValues(rows, fields){
     return {
         values,
         string: stringSections.join()
-    }
+    };
 }
 
 function getAllFieldKeysFromData(rows){
-    return rows.reduce((acc, row)=>{
-        Object.keys(row).forEach((key)=>{
+    return rows.reduce((acc, row) => {
+        Object.keys(row).forEach((key) => {
             if(!acc.includes(key)) {
                 acc.push(key);
             }
         });
 
         return acc;
-    },[]);
+    }, []);
 }
 
 function insertBatchedRows(connection, tableName, rows){
@@ -51,14 +51,14 @@ function insertBatchedRows(connection, tableName, rows){
         connection.query(
             sql,
             data.values,
-            (err, res)=>{
+            (err, res) => {
                 if(err){
                     reject(err);
                 } else {
                     resolve(res);
                 }
 
-        });
+            });
     });
 }
 

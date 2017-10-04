@@ -8,7 +8,7 @@ function getPasswordFromStdin(prompt='Please enter the password: '){
     // events to stdin...
     require('readline').emitKeypressEvents(process.stdin);
 
-    return new Promise((resolve, reject)=>{
+    return new Promise((resolve, reject) => {
 
         //get current stdinState:
         captureStdinState();
@@ -22,17 +22,17 @@ function getPasswordFromStdin(prompt='Please enter the password: '){
 
         let captureString='';
         //event listener:
-        const stdinPasswordCapture = (data, key) =>{
+        const stdinPasswordCapture = (data, key) => {
 
             if(isEscape(key)){
                 processEscapeKey(key);
             } else if(isEndOfPassword(key)){
-                process.stdin.removeListener(EVENT,stdinPasswordCapture);
+                process.stdin.removeListener(EVENT, stdinPasswordCapture);
                 restoreStdinState();
                 resolve(captureString);
             } else if (isBackspace(key)){
                 if(captureString.length>0){
-                    captureString = captureString.slice(0,-1);
+                    captureString = captureString.slice(0, -1);
                 } else {
                     //give 'em a bell
                     process.stdout.write('\u0007');
@@ -43,7 +43,7 @@ function getPasswordFromStdin(prompt='Please enter the password: '){
         };
 
         //setup the listener for keys:
-        process.stdin.addListener(EVENT,stdinPasswordCapture);
+        process.stdin.addListener(EVENT, stdinPasswordCapture);
 
         //write out the prompt
         process.stdout.write(prompt);
@@ -55,7 +55,7 @@ function getPasswordFromStdin(prompt='Please enter the password: '){
 //------------------------------------
 // Identifying end of password
 function isEndOfPassword(key){
-    const endSequences = ['\r','\n'];
+    const endSequences = ['\r', '\n'];
     return endSequences.includes(key.sequence);
 }
 
@@ -66,15 +66,17 @@ function isBackspace(key){
 // Escape key handling
 const escapeKeys = [
     {
-        sequence:'\u0003',
-        action: ()=>{process.exit(1);}
+        sequence: '\u0003',
+        action: () => {
+            process.exit(1);
+        }
     }
 ];
 function isEscape(key){
-    return escapeKeys.map(esc=>esc.sequence).includes(key.sequence);
+    return escapeKeys.map(esc => esc.sequence).includes(key.sequence);
 }
 function processEscapeKey(key){
-    const action = escapeKeys.find(esc=>esc.sequence === key.sequence).action;
+    const action = escapeKeys.find(esc => esc.sequence === key.sequence).action;
     if(action){
         action();
     } else {
@@ -94,7 +96,6 @@ function restoreStdinState(){
     process.stdin.unref();  //so program can exit if this is the only thing holding it back
 }
 //------------------------------------
-
 
 //Event listener
 

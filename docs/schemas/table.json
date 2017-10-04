@@ -2,11 +2,6 @@
     "type": "object",
     "description": "The properties required to define an SQL table.",
     "properties": {
-        "name":{
-            "type": "string",
-            "description": "the name of the table"
-        },
-
         "fields": {
             "type": "array",
             "description": "the fields of the table",
@@ -21,7 +16,6 @@
         }
     },
     "required":[
-        "name",
         "fields",
         "primaryKey"
     ]

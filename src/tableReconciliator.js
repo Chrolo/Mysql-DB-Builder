@@ -1,21 +1,24 @@
+const {promiseQuery} = require('./sql/utils');
+
 /**
 @returns bool whether the table had to be dropped or not.
 */
 function tableReconciliator(connection, tableSchema){
     let tableWasDropped = false;
-    let changes = [];
+    const isCompliant = false;
+    const changes = [];
 
     //TODO
-    console.warn('[tableChecker] Not yet implemented. Always drops tables.');
-    return new Promise((resolve, reject)=>{
-        connection.query(`DROP TABLE ${tableSchema.name};`,(err, result)=>{
-            if(err){
-                reject(err);
-            } else {
-                tableWasDropped = true;
-                resolve(tableWasDropped,changes)
-            }
-        });
+    console.warn(`[tableChecker] Not yet implemented. Always drops tables. Dropping: ${tableSchema.name}`);
+    return promiseQuery(connection, `DROP TABLE ${tableSchema.name};`).then(() => {
+        tableWasDropped = true;
+    }).then(() => {
+        //Return the results
+        return {
+            dropped: tableWasDropped,
+            isCompliant: isCompliant,
+            changes: changes
+        };
     });
 }
 

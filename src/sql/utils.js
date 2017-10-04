@@ -9,3 +9,7 @@ function promiseQuery(connection, ...args){
         });
     });
 }
+
+module.exports = {
+    promiseQuery
+};

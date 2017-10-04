@@ -6,10 +6,15 @@
   "directories": {
     "doc": "docs"
   },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "bin": {
+    "mysqlBuilder": "./src/main.js"
   },
-  "author": "",
+  "scripts": {
+    "test": "mocha -c src/**/*.spec.js",
+    "lint": "eslint ./src/**/*.js",
+    "lint:fix": "eslint ./src/**/*.js --fix"
+  },
+  "author": "Chrolo",
   "license": "UNLICENSED",
   "dependencies": {
     "ajv": "^5.2.2",
@@ -17,6 +22,8 @@
     "yargs": "^8.0.2"
   },
   "devDependencies": {
+    "chai": "^4.1.2",
+    "eslint": "^4.8.0",
     "mocha": "^3.5.0"
   }
 }

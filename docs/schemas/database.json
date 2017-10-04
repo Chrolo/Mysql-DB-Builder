@@ -1,5 +1,5 @@
 {
-    "id": "database.json",
+    "$id": "database.json",
     "type": "object",
     "description": "The properties of a database (from a data perspective).",
     "properties": {
@@ -8,9 +8,9 @@
             "description": "the name of the database"
         },
         "tables": {
-            "type": "array",
-            "items": {
-                "$ref": "table.json#"
+            "type": "object",
+            "additionProperties": {
+                "$ref": "table.json"
             }
         }
     },
