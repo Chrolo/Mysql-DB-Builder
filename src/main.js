@@ -4,15 +4,15 @@ const mysql = require('mysql');
 const databaseConfig = require('./databaseConfig');
 const {tableCreator} = require('./tableCreator.js');
 const {addForiegnKeyConstraints, removeForeignKeyConstraintsFromTables} = require('./sql/constraints');
+const {truncateTable} = require('./sql/tables');
 const {promiseQuery} = require('./sql/utils');
 const {addDataFromFile} = require('./dataFiller.js');
 const tableValidator = require('./tableValidator.js');
 const tableReconciliator = require('./tableReconciliator.js');
 const getPasswordFromStdin = require('../src/passwordstdin.js');
-const {intialiseStatusForTable, setTableStatus, getStatusesAsArray, getStatuses} = require('./tableStatuses');
+const {intialiseStatusForTable, setTableStatus, getStatusesAsArray} = require('./tableStatuses');
 
 //GLOBAL DEFINITIONS
-let tableStatuses;  // a tracker for the statuses of the different tables during processing.
 let mysqlConnection;
 
 //Processing begin:
@@ -123,6 +123,18 @@ new Promise((resolve) => {
     });
     return Promise.all(promises);
 }).then(() => {
+    //-- (OPTIONAL) TRUNCATE TABLES --//
+    //if we've got initialisation data, we need to make sure the tables are empty:
+    // this must be done BEFORE foreignKey constraints are applied
+    //TODO: maybe add CLI flag to enable database truncation without specifing initialisation data?
+    if(argv.initial_data_file) {
+        return Promise.all(databaseConfig.getListOfTableNames().map((tableName) => {
+            console.log(`Truncating table ${tableName}, as initalisationData has been set`);
+            return truncateTable(mysqlConnection, tableName);
+        }));
+    }
+    return Promise.resolve();
+}).then(() => {
 //-- RE-CONSTRAINING STAGE --//
     //add constraints
     const promises = getStatusesAsArray().map((status) => {
@@ -136,6 +148,7 @@ new Promise((resolve) => {
 
 //Print success
     console.log('---- [Table creation results] -----');
+    //TODO: come up with pretty print (put into the tableStatuses.js module)
     console.log(JSON.stringify(getStatusesAsArray().map(status => {
         delete status.schema;
         return status;
@@ -159,6 +172,5 @@ new Promise((resolve) => {
     console.log('Process complete. Thank you, come again.');
 }).catch((error) => {
     console.log('[Error] An error occurred during processing: ', error);
-
     mysqlConnection.end();
 });

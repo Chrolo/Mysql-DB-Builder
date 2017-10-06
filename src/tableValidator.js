@@ -1,4 +1,3 @@
-const {promiseQuery} = require('./sql/utils');
 const {checkTableExists} = require('./sql/tables');
 
 function tableValidator(connection, tableSchema){

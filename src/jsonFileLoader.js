@@ -4,9 +4,9 @@ const path = require('path');
 function jsonFileLoader(filePath){
     const FILEPATH = path.resolve(process.cwd(), filePath);
     if(fs.existsSync(FILEPATH)){
-        const fileContent = fs.readFileSync(FILEPATH, "utf8");
+        const fileContent = require(FILEPATH);
         try{
-            return JSON.parse(fileContent);
+            return JSON.parse(JSON.stringify(fileContent));
         } catch (err) {
             console.error(`[JsonFileLoader] File '${FILEPATH}' could not be parsed.`, err);
             return null;

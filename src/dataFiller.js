@@ -10,6 +10,7 @@ function addDataFromFile(connection, fileName){
 
     //Get the global insert order
     const insertOrder = figureOutTableInsertionOrder(databaseConfig.getTablesAsArray());
+
     const tablesWithDataToInsert = Object.keys(data);
     //filter to the order we need:
     const tablesToUpload = insertOrder.filter((tableName) => tablesWithDataToInsert.includes(tableName));

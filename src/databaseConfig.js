@@ -25,10 +25,7 @@ function getTablesAsArray(){
 }
 
 function getListOfTableNames(){
-    return config.tables.reduce((acc, tableConfig) => {
-        acc.push(tableConfig.name);
-        return acc;
-    }, []);
+    return Object.keys(config.tables);
 }
 
 module.exports = {

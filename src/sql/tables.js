@@ -1,4 +1,5 @@
 const {promiseQuery} = require('./utils');
+const {checkIfColumnHasUniquenessConstraint} = require('./constraints');
 
 function checkTableExists(connection, tableName){
     return promiseQuery(connection,
@@ -7,6 +8,19 @@ function checkTableExists(connection, tableName){
     ).then(res => !!res.length); //convert to boolean
 }
 
+function checkTableHasCollumn(connection, tableName, fieldConfig){
+//build query
+    let sql = `SELECT * FROM information_schema.columns WHERE TABLE_SCHEMA IN (SELECT DATABASE())`;
+
+    return promiseQuery(connection, sql);
+}
+
+function truncateTable(connection, tableName){
+    return promiseQuery(connection, `TRUNCATE ${tableName};`);
+}
+
 module.exports= {
-    checkTableExists
+    checkTableExists,
+    checkTableHasCollumn,
+    truncateTable
 };
