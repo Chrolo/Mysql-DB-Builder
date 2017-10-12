@@ -49,9 +49,9 @@ function addForiegnKeyConstraints(mysqlConnection, tableConfig){
 function checkIfColumnHasUniquenessConstraint(connection, tableName, columnName){
     return promiseQuery(
         connection,
-        'SELECT * FROM information_schema.key_column_usage WHERE TABLE_SCHEMA IN (SELECT DATABASE()) AND TABLE_NAME=? AND CONSTRAINT_NAME=? AND COLUMN_NAME=?);',
+        'SELECT * FROM information_schema.key_column_usage WHERE TABLE_SCHEMA IN (SELECT DATABASE()) AND TABLE_NAME=? AND CONSTRAINT_NAME=? AND COLUMN_NAME=?;',
         [tableName, columnName, columnName]
-    ).then( results => !!results.length);   //return boolean
+    ).then(results => !!results.length);   //return boolean
 }
 
 module.exports = {
